@@ -6,9 +6,11 @@ import com.wallet.safewallet.entity.User;
 import com.wallet.safewallet.entity.Wallet;
 import com.wallet.safewallet.repository.UserRepository;
 import com.wallet.safewallet.repository.WalletRepository;
+import com.wallet.safewallet.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -18,12 +20,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final WalletRepository walletRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
+    @Transactional
     public ApiResponse<Void> register(RegisterRequest request){
         if(userRepository.existsByPhone(request.getPhone())){
             throw new RuntimeException("Phone number already registered !");
         }
-        com.wallet.safewallet.entity.User user = User.builder()
+        User user = User.builder()
                 .phone(request.getPhone())
                 .fullName(request.getFullName())
                 .password(passwordEncoder.encode(request.getPassword()))
@@ -47,4 +51,22 @@ public class AuthService {
 
 
     }
+
+    public String login(String phone, String password){
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(()-> new RuntimeException("Invalid phone or password"));
+
+        if(!user.getIsVerified()){
+            throw new RuntimeException("Account not verified. Please verify OTP first ! ");
+        }
+
+        if(!passwordEncoder.matches(password, user.getPassword())){
+            throw new RuntimeException("Invalid phone or password ! ");
+        }
+
+        return jwtUtil.generateToken(user.getPhone());
+
+    }
+
+
 }
