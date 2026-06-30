@@ -1,6 +1,7 @@
 package com.wallet.safewallet.service;
 
 import com.wallet.safewallet.dto.ApiResponse;
+import com.wallet.safewallet.dto.LoginResponse;
 import com.wallet.safewallet.dto.RegisterRequest;
 import com.wallet.safewallet.entity.User;
 import com.wallet.safewallet.entity.Wallet;
@@ -21,6 +22,7 @@ public class AuthService {
     private final WalletRepository walletRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final OtpService otpService;
 
     @Transactional
     public ApiResponse<Void> register(RegisterRequest request){
@@ -46,13 +48,15 @@ public class AuthService {
         walletRepository.save(wallet);
         // 4. TODO Week 3: generate and send OTP here
         //otpService.generateAndStore(request.getPhone());
+        String otp = otpService.generateOtpandStore(request.getPhone());
+        System.out.println("  OTP for " + request.getPhone() + ": " + otp);
 
         return ApiResponse.ok("Registration successful. Check your phone for OTP.");
 
 
     }
 
-    public String login(String phone, String password){
+    public LoginResponse login(String phone, String password){
         User user = userRepository.findByPhone(phone)
                 .orElseThrow(()-> new RuntimeException("Invalid phone or password"));
 
@@ -64,8 +68,24 @@ public class AuthService {
             throw new RuntimeException("Invalid phone or password ! ");
         }
 
-        return jwtUtil.generateToken(user.getPhone());
+        String token =  jwtUtil.generateToken(user.getPhone());
 
+        return new LoginResponse(token,
+                user.getPhone(),
+                user.getFullName(),
+                user.getIsVerified());
+
+
+    }
+
+    public void verifyOtp(String phone, String otp){
+        if(!otpService.verify(phone, otp)){
+            throw new RuntimeException("Invalid or expired otp ! ");
+        }
+        User user = userRepository.findByPhone(phone)
+                .orElseThrow(()-> new RuntimeException("User not found !"));
+        user.setIsVerified(true);
+        userRepository.save(user);
     }
 
 
