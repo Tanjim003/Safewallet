@@ -3,12 +3,14 @@ package com.wallet.safewallet.service;
 import com.wallet.safewallet.dto.SendMoneyRequest;
 import com.wallet.safewallet.entity.User;
 import com.wallet.safewallet.entity.Wallet;
+import com.wallet.safewallet.exception.InsufficientFundsException;
 import com.wallet.safewallet.repository.UserRepository;
 import com.wallet.safewallet.repository.WalletRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -30,6 +32,7 @@ public class WalletService {
         return wallet.getBalance();
     }
 
+    @Transactional
     public void sendMoney(String senderPhone, SendMoneyRequest request){
         User sender = userRepository.findByPhone(senderPhone)
                 .orElseThrow(()-> new RuntimeException("Sender not found !"));
@@ -40,6 +43,10 @@ public class WalletService {
                 .orElseThrow(()-> new RuntimeException("Recipient not found !"));
         Wallet reciverWallet = walletRepository.findByUserId(reciver.getId())
                 .orElseThrow(()-> new RuntimeException("Recipient wallet not found !"));
+
+        if(senderWallet.getBalance().compareTo(request.getAmount()) < 0){
+            throw new InsufficientFundsException("Insufficient balance");
+        }
 
         senderWallet.setBalance(senderWallet.getBalance().subtract(request.getAmount()));
         walletRepository.save(senderWallet);
