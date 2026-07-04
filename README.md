@@ -26,8 +26,6 @@ During development I deliberately broke the transfer endpoint to understand how 
 - **Idempotency** – To prevent double‑charging from accidental retries, I introduced idempotency keys. A client can supply its own key (safe for network‑level retries), and if none is provided, the server generates a **deterministic key** based on sender, receiver, amount, and a one‑minute time window. The system stores the key in the transactions table and rejects duplicate keys with a `409 Conflict`, guaranteeing that the same logical transfer is processed only once.
 
 ## In progress
-
-- Wallet-to-wallet transfer — atomic with `@Transactional`, idempotent via unique key constraint, pessimistic locking to prevent race conditions
 - Daily fraud limit — hard block at ৳30,000/day using a running total table, no full-scan aggregation
 - Soft fraud flagging — large amount, high velocity, off-hours detection
 - Transaction history — paginated, labelled SENT or RECEIVED
