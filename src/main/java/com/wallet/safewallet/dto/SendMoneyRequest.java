@@ -16,4 +16,6 @@ public class SendMoneyRequest {
     private BigDecimal amount;
 
     private String note;
+
+    private String idempotencyKey;
 }
