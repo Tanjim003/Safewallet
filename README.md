@@ -15,6 +15,16 @@ Built as a portfolio project targeting fintech engineering roles.
 - Role-based access — USER and ADMIN roles stored in DB and embedded in JWT claims
 - Balance check — only accessible to verified users
 
+## Backend Engineering Deep‑Dives
+
+During development I deliberately broke the transfer endpoint to understand how to fix it – then applied industry‑standard solutions.
+
+- **Atomicity** – First, I removed the `@Transactional` annotation and simulated a failure mid‑transfer (a fraud‑check exception after debiting the sender but before crediting the recipient). The sender’s balance decreased while the recipient never received the money – money simply vanished. Adding `@Transactional` ensured that either **all operations succeed or everything rolls back**, keeping the database consistent.
+
+- **Pessimistic Locking** – I fired two simultaneous transfer requests against the same wallet without any locking. Both requests read the same old balance, approved the transfer, and debited the sender twice, resulting in a **negative wallet balance**. Switching to a pessimistic write lock (`SELECT … FOR UPDATE`) forced the second request to wait and see the updated balance, completely eliminating the race condition.
+
+- **Idempotency** – To prevent double‑charging from accidental retries, I introduced idempotency keys. A client can supply its own key (safe for network‑level retries), and if none is provided, the server generates a **deterministic key** based on sender, receiver, amount, and a one‑minute time window. The system stores the key in the transactions table and rejects duplicate keys with a `409 Conflict`, guaranteeing that the same logical transfer is processed only once.
+
 ## In progress
 
 - Wallet-to-wallet transfer — atomic with `@Transactional`, idempotent via unique key constraint, pessimistic locking to prevent race conditions
