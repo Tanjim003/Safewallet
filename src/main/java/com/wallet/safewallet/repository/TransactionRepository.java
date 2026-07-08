@@ -40,6 +40,5 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
             "WHERE t.senderId = :walletId OR t.receiverId = :walletId " +
             "ORDER BY t.createdAt DESC")
     Page<TransactionHistoryItem> findTransactionHistoryByWalletId(
-            @Param("walletId") Long walletId, Pageable pageable
-    );
+            @Param("walletId") Long walletId, Pageable pageable);
 }

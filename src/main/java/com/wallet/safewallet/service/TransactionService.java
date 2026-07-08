@@ -30,8 +30,21 @@ public class TransactionService {
                 .orElseThrow(()-> new RuntimeException("Wallet not found"));
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        return transactionRepository.findTransactionHistoryByWalletId(wallet.getId(),
-                pageRequest);
+        Page<TransactionHistoryItem> resultPage = transactionRepository.
+                findTransactionHistoryByWalletId(wallet.getId(), pageRequest);
+
+        resultPage.getContent().forEach(item -> {
+            if("TRANSFER".equals(item.getTransactionType())) {
+                if(phone.equals(item.getSenderPhone())){
+                    item.setDirection("SENT");
+                } else {
+                    item.setDirection("RECEIVED");
+                }
+            } else {
+                item.setDirection("N/A");
+            }
+        });
+        return resultPage;
 
 
 
