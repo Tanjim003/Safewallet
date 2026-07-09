@@ -27,6 +27,7 @@ public class WalletService {
     private final WalletRepository walletRepository;
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
+    private final FraudDetectionService fraudDetectionService;
 
     public BigDecimal getBalance(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -64,6 +65,8 @@ public class WalletService {
             throw new InsufficientFundsException("Insufficient balance");
         }
 
+        fraudDetectionService.checkDailyLimit(senderWallet.getId(), request.getAmount());
+
         // idempotency key handling -
 
         String idempotencyKey;
@@ -82,6 +85,7 @@ public class WalletService {
 
         senderWallet.setBalance(senderWallet.getBalance().subtract(request.getAmount()));
         walletRepository.save(senderWallet);
+
 
 //        if(request.getAmount().intValue() > 500){
 //            throw new RuntimeException("Simulated fraud check failure");
@@ -103,7 +107,15 @@ public class WalletService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        String flagReason = fraudDetectionService.analyzeTransaction(senderWallet.getId(), request.getAmount());
+        if (flagReason != null) {
+            transaction.setIsFlagged(true);
+            transaction.setFlagReason(flagReason);
+        }
+
         transactionRepository.save(transaction);
+
+        fraudDetectionService.updateDailyTotal(senderWallet.getId(), request.getAmount());
 
         }
 
