@@ -1,5 +1,7 @@
 package com.wallet.safewallet.security;
 
+import com.wallet.safewallet.entity.User;
+import com.wallet.safewallet.repository.UserRepository;
 import com.wallet.safewallet.util.JwtUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +25,7 @@ import java.util.Collections;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
    private final JwtUtil  jwtUtil;
+   private final UserRepository userRepository;
 
 
     @Override
@@ -31,21 +34,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        //extract token from authorization header
+        // Extract token from Authorization header
         String token = extractToken(request);
 
-        //validate token
-        if(token != null && jwtUtil.isTokenValid(token)){
+        // Validate token and set authentication
+        if (token != null && jwtUtil.isTokenValid(token)) {
             String phone = jwtUtil.extractPhone(token);
 
+            // Fetch the user's real role from the database
+            User user = userRepository.findByPhone(phone).orElse(null);
+            String role = (user != null) ? user.getRole() : "USER";
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(phone, null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER")));
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    new UsernamePasswordAuthenticationToken(
+                            phone,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
+                    );
+            authentication.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response);
 
+        // Continue the filter chain
+        filterChain.doFilter(request, response);
     }
 
     private String extractToken(HttpServletRequest request){

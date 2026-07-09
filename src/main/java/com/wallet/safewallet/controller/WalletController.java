@@ -2,6 +2,10 @@ package com.wallet.safewallet.controller;
 
 import com.wallet.safewallet.dto.ApiResponse;
 import com.wallet.safewallet.dto.SendMoneyRequest;
+import com.wallet.safewallet.entity.Transaction;
+import com.wallet.safewallet.payment.PaymentRequest;
+import com.wallet.safewallet.service.PaymentService;
+import com.wallet.safewallet.service.UserService;
 import com.wallet.safewallet.service.WalletService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +21,8 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class WalletController {
     private final WalletService walletService;
+    private final PaymentService paymentService;
+    private final UserService userService;
 
     @GetMapping("/balance")
     public ResponseEntity<ApiResponse<BigDecimal>> getBalance(){
@@ -32,6 +38,14 @@ public class WalletController {
         walletService.sendMoney(senderPhone, request);
         return ResponseEntity.ok(ApiResponse.ok("Transfer Successful"));
 
+    }
+
+    @PostMapping("/withDraw")
+    public ResponseEntity<ApiResponse<Transaction>> withDraw(@Valid @RequestBody PaymentRequest request) {
+        String phone = SecurityContextHolder.getContext().getAuthentication().getName();
+        Long walletId = userService.getWalletIdByPhone(phone);
+        Transaction tx = paymentService.withdraw(walletId, request);
+        return ResponseEntity.ok(ApiResponse.ok("Withdrawal successful", tx));
     }
 
 }
