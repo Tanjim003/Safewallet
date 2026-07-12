@@ -28,6 +28,7 @@ spring:
 
   data:
     redis:
+      url: ${REDIS_URL:}
       host: ${REDIS_HOST}             # Redis running in Docker, exposed on REDIS HOST
       port: ${REDIS_PORT}
       timeout: 2000ms
