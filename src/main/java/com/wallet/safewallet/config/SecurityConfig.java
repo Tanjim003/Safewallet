@@ -27,7 +27,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-                                "/api/auth/verify-otp"
+                                "/api/auth/verify-otp",
+                                "/actuator/health/**",
+                                "/actuator/info",
+                                "/actuator/prometheus"
 
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
