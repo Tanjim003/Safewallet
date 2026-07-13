@@ -1,6 +1,6 @@
 package com.wallet.safewallet.controller;
 
-import com.wallet.safewallet.dto.ApiResponse;
+import com.wallet.safewallet.dto.ApiResponseDTO;
 import com.wallet.safewallet.dto.SendMoneyRequest;
 import com.wallet.safewallet.entity.Transaction;
 import com.wallet.safewallet.payment.PaymentRequest;
@@ -25,27 +25,27 @@ public class WalletController {
     private final UserService userService;
 
     @GetMapping("/balance")
-    public ResponseEntity<ApiResponse<BigDecimal>> getBalance(){
+    public ResponseEntity<ApiResponseDTO<BigDecimal>> getBalance(){
         BigDecimal balance = walletService.getBalance();
-        return ResponseEntity.ok(ApiResponse.ok("Balance fetched", balance));
+        return ResponseEntity.ok(ApiResponseDTO.ok("Balance fetched", balance));
     }
 
     @PostMapping("/send")
-    public ResponseEntity<ApiResponse<Void>> sendMoney(@Valid @RequestBody SendMoneyRequest request){
+    public ResponseEntity<ApiResponseDTO<Void>> sendMoney(@Valid @RequestBody SendMoneyRequest request){
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String senderPhone = auth.getName();
         walletService.sendMoney(senderPhone, request);
-        return ResponseEntity.ok(ApiResponse.ok("Transfer Successful"));
+        return ResponseEntity.ok(ApiResponseDTO.ok("Transfer Successful"));
 
     }
 
     @PostMapping("/withDraw")
-    public ResponseEntity<ApiResponse<Transaction>> withDraw(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<ApiResponseDTO<Transaction>> withDraw(@Valid @RequestBody PaymentRequest request) {
         String phone = SecurityContextHolder.getContext().getAuthentication().getName();
         Long walletId = userService.getWalletIdByPhone(phone);
         Transaction tx = paymentService.withdraw(walletId, request);
-        return ResponseEntity.ok(ApiResponse.ok("Withdrawal successful", tx));
+        return ResponseEntity.ok(ApiResponseDTO.ok("Withdrawal successful", tx));
     }
 
 }

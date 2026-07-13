@@ -1,6 +1,6 @@
 package com.wallet.safewallet.service;
 
-import com.wallet.safewallet.dto.ApiResponse;
+import com.wallet.safewallet.dto.ApiResponseDTO;
 import com.wallet.safewallet.dto.LoginResponse;
 import com.wallet.safewallet.dto.RegisterRequest;
 import com.wallet.safewallet.entity.User;
@@ -25,7 +25,7 @@ public class AuthService {
     private final OtpService otpService;
 
     @Transactional
-    public ApiResponse<Void> register(RegisterRequest request){
+    public ApiResponseDTO<Void> register(RegisterRequest request){
         if(userRepository.existsByPhone(request.getPhone())){
             throw new RuntimeException("Phone number already registered !");
         }
@@ -51,7 +51,7 @@ public class AuthService {
         String otp = otpService.generateOtpandStore(request.getPhone());
         System.out.println("  OTP for " + request.getPhone() + ": " + otp);
 
-        return ApiResponse.ok("Registration successful. Check your phone for OTP.");
+        return ApiResponseDTO.ok("Registration successful. Check your phone for OTP.");
 
 
     }

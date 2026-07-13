@@ -30,7 +30,11 @@ public class SecurityConfig {
                                 "/api/auth/verify-otp",
                                 "/actuator/health/**",
                                 "/actuator/info",
-                                "/actuator/prometheus"
+                                "/actuator/prometheus",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
 
                         ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -38,6 +42,7 @@ public class SecurityConfig {
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+
     }
 
 }

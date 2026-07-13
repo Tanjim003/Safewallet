@@ -1,7 +1,7 @@
 package com.wallet.safewallet.exception;
 
 
-import com.wallet.safewallet.dto.ApiResponse;
+import com.wallet.safewallet.dto.ApiResponseDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<List<String>>> handleValidation(
+    public ResponseEntity<ApiResponseDTO<List<String>>> handleValidation(
             MethodArgumentNotValidException ex){
         List<String> errors = ex.getBindingResult()
                 .getFieldErrors()
@@ -22,35 +22,35 @@ public class GlobalExceptionHandler {
                 .map( e -> e.getField() + ": " + e.getDefaultMessage())
                 .collect(Collectors.toList());
         return ResponseEntity.badRequest()
-                .body(new ApiResponse<>(false, "Validation failed", errors));
+                .body(new ApiResponseDTO<>(false, "Validation failed", errors));
 
     }
 
     @ExceptionHandler(InsufficientFundsException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInsufficientFunds(
+    public ResponseEntity<ApiResponseDTO<Void>> handleInsufficientFunds(
             InsufficientFundsException ex) {
         return ResponseEntity.badRequest()
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponseDTO.error(ex.getMessage()));
     }
 
     @ExceptionHandler(DuplicateTransactionException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDuplicate(
+    public ResponseEntity<ApiResponseDTO<Void>> handleDuplicate(
             DuplicateTransactionException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponseDTO.error(ex.getMessage()));
     }
 
     @ExceptionHandler(DailyLimitExceededException.class)
-    public ResponseEntity<ApiResponse<Void>> handleDailyLimit(
+    public ResponseEntity<ApiResponseDTO<Void>> handleDailyLimit(
             DailyLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponseDTO.error(ex.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<Void>> handleRuntime(RuntimeException ex) {
+    public ResponseEntity<ApiResponseDTO<Void>> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(ex.getMessage()));
+                .body(ApiResponseDTO.error(ex.getMessage()));
     }
 
 }
