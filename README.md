@@ -2,7 +2,7 @@
 
 ## Live API
 
-The entire API is live at **[safewallet-vmmy.onrender.com](https://safewallet-vmmy.onrender.com)**.
+The entire API is live at **https://safewallet-vmmy.onrender.com/swagger-ui/index.html#/**.
 
 
 
