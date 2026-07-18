@@ -1,10 +1,51 @@
 # SafeWallet API
 
+## Live API
+
+The entire API is live at **[safewallet-vmmy.onrender.com](https://safewallet-vmmy.onrender.com)**.
+
+
+
 > **A production-oriented digital wallet backend built with Spring Boot, PostgreSQL, Redis and Docker.**
 >
 > SafeWallet is a portfolio project designed to demonstrate backend engineering concepts commonly found in fintech systems. It focuses on transactional consistency, concurrency control, fraud detection, idempotency, and clean architecture.
 
 ---
+
+## System Architecture
+
+```text
+                        +----------------+
+                        |     Client     |
+                        +--------+-------+
+                                 |
+                                 v
+                     Spring Security + JWT
+                                 |
+                    +------------+-------------+
+                    |                          |
+                    v                          v
+             Authentication              Wallet APIs
+          (OTP + Login + JWT)      (Transfer / Withdraw)
+                    |                          |
+                    +------------+-------------+
+                                 |
+                         Service Layer
+                                 |
+        +------------+-----------+-------------+
+        |            |                         |
+        v            v                         v
+ Fraud Engine   Payment Provider      Transaction Manager
+                     |
+                     v
+             FakePaymentProvider
+                     |
+          (Replaceable by Stripe,
+             bKash, Nagad...)
+                                 |
+                                 v
+                    PostgreSQL + Redis
+```
 
 # Features
 
@@ -59,23 +100,76 @@ Concurrent transfer requests previously produced negative balances. Wallet rows 
 
 Duplicate requests caused by retries are prevented using unique idempotency keys stored at the database layer.
 
-## Fraud Detection
+## Fraud Detection Engine
 
-Two-layer fraud engine:
+Every transfer passes through a lightweight fraud detection layer before completion.
 
 ### Hard Block
 
-Transfers exceeding the configured daily limit are rejected before money moves.
+If a user exceeds the configured daily transfer limit:
+
+```
+Transfer Rejected
+```
+
+Money never leaves the wallet.
+
+---
 
 ### Soft Flag
 
-Potentially suspicious transactions (large amount, high velocity) are allowed but flagged for later administrative review.
+Transactions that appear suspicious are still processed but recorded for administrative review.
 
-Running daily totals are maintained in a dedicated table to avoid expensive aggregation queries.
+Current rules include:
+
+- unusually large transfers
+- high transaction frequency
+
+Flagged transactions appear inside the admin dashboard for investigation.
+
+---
+
+### Why Daily Totals Table?
+
+Instead of calculating
+
+```sql
+SUM(...)
+```
+
+over the entire transaction table on every request,
+
+daily totals are maintained incrementally inside
+
+```
+daily_transfer_totals
+```
+
+making fraud validation significantly faster as transaction history grows.
 
 ## Payment Provider Abstraction
+## Extensible Payment Architecture
 
-`PaymentService` depends on a `PaymentProvider` interface rather than a specific gateway.
+Business logic depends on an abstraction rather than a concrete payment gateway.
+
+```
+PaymentService
+      |
+      v
+PaymentProvider
+      |
++-----+------+-------------+
+|            |             |
+v            v             v
+Fake      Stripe        bKash
+Provider
+```
+
+The current implementation uses `FakePaymentProvider` for development.
+
+Replacing it with Stripe, bKash or Nagad only requires a new implementation of the `PaymentProvider` interface.
+
+No business logic changes are required.
 
 Current implementation:
 
