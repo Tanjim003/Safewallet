@@ -1,3 +1,5 @@
+![CI/CD](https://github.com/Tanjim003/Safewallet/actions/workflows/ci.yml/badge.svg)
+
 # SafeWallet API
 
 ## Live API
