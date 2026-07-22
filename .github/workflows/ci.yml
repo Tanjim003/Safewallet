@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Java 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.7.1
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -55,16 +55,15 @@ jobs:
           SPRING_DATASOURCE_URL:      jdbc:postgresql://localhost:5433/wallet_db_test
           SPRING_DATASOURCE_USERNAME: wallet_user
           SPRING_DATASOURCE_PASSWORD: wallet_pass
-          REDIS_HOST:                 localhost
-          REDIS_PORT:                 6379
-          JWT_SECRET:                 test-secret-key-minimum-32-characters-long-here
+          REDIS_URL:                  redis://localhost:6379
+          JWT_SECRET:                 HwS7Dn1JdLcraJPhmUteJIATZO9ouGDHr/U6raYRr166rtVRl+zO+UC5Fr1bA4vqE2k+tOFvJGTPd4AlE8Akmg==
           JWT_EXPIRATION:             86400000
           SPRING_PROFILES_ACTIVE:     test
         run: ./mvnw test --no-transfer-progress
 
       - name: Upload test report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name:              test-results-${{ github.run_id }}
           path:              target/surefire-reports/

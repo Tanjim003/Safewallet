@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    url:      ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/wallet_db}
+    username: ${SPRING_DATASOURCE_USERNAME:wallet_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:wallet_pass}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    url:      ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/wallet_db}
+    user:     ${SPRING_DATASOURCE_USERNAME:wallet_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:wallet_pass}
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+
+jwt:
+  secret:     ${JWT_SECRET:HwS7Dn1JdLcraJPhmUteJIATZO9ouGDHr/U6raYRr166rtVRl+zO+UC5Fr1bA4vqE2k+tOFvJGTPd4AlE8Akmg==}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+logging:
+  level:
+    root:        WARN
+    com.wallet:  INFO
